@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modern Image Editor</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* General Page Styling */
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(to bottom, #d1d4ce, #464444, #0f0f0f);
+        color: white;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1100px;
+        background: rgba(217, 197, 197, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 32px;
+        font-weight: 600;
+        color: #4caf50;
+        text-shadow: #0f0f0f;
+      }
+
+      /* Image Layout */
+      .image-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-direction: row;
+        margin-top: 20px;
+      }
+
+      .image-card {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out;
+        width: 48%;
+        text-align: center;
+      }
+
+      .image-card:hover {
+        transform: scale(1.05);
+      }
+
+      img {
+        max-width: 100%;
+        border-radius: 8px;
+      }
+
+      /* Upload & Button Styling */
+      .upload-container {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+
+      input[type="file"] {
+        padding: 12px;
+        border-radius: 5px;
+        border: none;
+        background: #5fad62;
+        margin-bottom: 15px;
+        font-size: 14px;
+        width: 220px;
+      }
+
+      .button {
+        padding: 12px 20px;
+        margin: 5px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .button:hover {
+        background-color: #45a049;
+        transform: scale(1.05);
+      }
+
+      /* Filter Controls */
+      .controls {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .slider-container {
+        margin: 10px 0;
+        color: white;
+      }
+
+      input[type="range"] {
+        width: 80%;
+        accent-color: #4caf50;
+      }
+
+      /* Download Button */
+      .download-btn {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 12px 25px;
+        background-color: #007bff;
+        color: rgb(202, 239, 197);
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .download-btn:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+      }
+
+      /* Mobile Responsive */
+      @media (max-width: 500px) {
+        .image-container {
+          flex-direction: row;
+        }
+        .image-card {
+          width: 100%;
+        }
+      }
+    </style>
+    <script>
+      // JavaScript to display the selected file name
+      function updateFileName() {
+        const fileInput = document.getElementById("imageInput");
+        const fileNameLabel = document.getElementById("fileNameLabel");
+        fileNameLabel.textContent = fileInput.files[0]
+          ? fileInput.files[0].name
+          : "No file chosen";
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Modern Image Editor</h1>
+
+      <div class="upload-container">
+        <form action="/upload" method="post" enctype="multipart/form-data">
+          <input
+            type="file"
+            name="image"
+            id="imageInput"
+            required
+            onchange="updateFileName()"
+          />
+          <label id="fileNameLabel">No file chosen</label>
+          <button type="submit" class="button">Upload Image</button>
+        </form>
+      </div>
+
+      {% if filename %}
+      <div class="image-container">
+        <div class="image-card">
+          <h3>Original Image</h3>
+          <img src="{{ url_for('download', filename=filename) }}" />
+        </div>
+        {% if edited_filename %}
+        <div class="image-card">
+          <h3>Edited Image</h3>
+          <img src="{{ url_for('download', filename=edited_filename) }}" />
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="controls">
+        <h3>Apply Filters</h3>
+        <form action="/edit" method="post">
+          <input type="hidden" name="filename" value="{{ filename }}" />
+          <div class="button-container">
+            <button name="action" value="grayscale" class="button">
+              Grayscale
+            </button>
+            <button name="action" value="blur" class="button">Blur</button>
+            <button name="action" value="sharpen" class="button">
+              Sharpen
+            </button>
+            <button name="action" value="sepia" class="button">Sepia</button>
+          </div>
+          <div class="slider-container">
+            <label for="brightnessSlider">Brightness:</label>
+            <input
+              type="range"
+              name="value"
+              min="-100"
+              max="100"
+              value="0"
+              id="brightnessSlider"
+            />
+          </div>
+          <div class="slider-container">
+            <label for="contrastSlider">Contrast:</label>
+            <input
+              type="range"
+              name="value"
+              min="0.5"
+              max="3.0"
+              step="0.1"
+              value="1.0"
+              id="contrastSlider"
+            />
+          </div>
+          <div class="button-container">
+            <button name="action" value="brightness" class="button">
+              Apply Brightness
+            </button>
+            <button name="action" value="contrast" class="button">
+              Apply Contrast
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {% if edited_filename %}
+      <a
+        href="{{ url_for('download', filename=edited_filename) }}"
+        download
+        class="download-btn"
+      >
+        Download Edited Image
+      </a>
+      {% endif %} {% endif %}
+    </div>
+  </body>
+</html>
